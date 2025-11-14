@@ -8,25 +8,45 @@
   --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
   
-  /* Add these for focus states */
-  --color-focus-ring: #3b82f6;
-  --color-focus-border: #3b82f6;
+  /* Dark mode colors */
+  --color-dark-background: #0a0a0a;
+  --color-dark-foreground: #ededed;
+  --color-dark-primary-50: #1e293b;
+  --color-dark-primary-500: #3b82f6;
+  --color-dark-primary-600: #2563eb;
+  --color-dark-primary-700: #1d4ed8;
 }
 
+/* Dark mode styles */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #0a0a0a;
-    --color-foreground: #ededed;
+    --color-background: var(--color-dark-background);
+    --color-foreground: var(--color-dark-foreground);
+    --color-primary-50: var(--color-dark-primary-50);
+    --color-primary-500: var(--color-dark-primary-500);
+    --color-primary-600: var(--color-dark-primary-600);
+    --color-primary-700: var(--color-dark-primary-700);
   }
+}
+
+/* Manual dark mode class */
+.dark {
+  --color-background: var(--color-dark-background);
+  --color-foreground: var(--color-dark-foreground);
+  --color-primary-50: var(--color-dark-primary-50);
+  --color-primary-500: var(--color-dark-primary-500);
+  --color-primary-600: var(--color-dark-primary-600);
+  --color-primary-700: var(--color-dark-primary-700);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom utility classes with proper v4 syntax */
+/* Custom utility classes */
 @layer utilities {
   .bg-primary-50 {
     background-color: var(--color-primary-50);
@@ -40,23 +60,13 @@ body {
   .bg-primary-700 {
     background-color: var(--color-primary-700);
   }
-  
   .text-primary-600 {
     color: var(--color-primary-600);
   }
-  
   .border-primary-500 {
     border-color: var(--color-primary-500);
   }
   .border-primary-600 {
     border-color: var(--color-primary-600);
-  }
-  
-  /* Fix focus states */
-  .focus-ring-primary-500:focus {
-    outline-color: var(--color-primary-500);
-  }
-  .focus-border-primary-500:focus {
-    border-color: var(--color-primary-500);
   }
 }

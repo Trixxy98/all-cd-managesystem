@@ -5,6 +5,9 @@ import DatabaseTest from '@/components/DatabaseTest';
 import UploadForm from '@/components/UploadForm';
 import DataTable from '@/components/DataTable';
 import Statistics from '@/components/Statistics';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
+
 
 interface User {
   id: number;
@@ -18,6 +21,7 @@ export default function Dashboard() {
   const [token, setToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('upload');
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -48,26 +52,29 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Network Data Management
-              </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Welcome back, {user.name} ({user.role})
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-sm font-medium text-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <header className="bg-white dark:bg-gray-900 shadow transition-colors">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between items-center py-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
+          Network Data Management
+        </h1>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">
+          Welcome back, {user.name} ({user.role})
+        </p>
+      </div>
+      <div className="flex items-center space-x-4">
+        <ThemeToggle />
+        <button
+          onClick={handleLogout}
+          className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
 
       {/* Navigation Tabs */}
       <nav className="bg-white shadow-sm">
@@ -91,7 +98,7 @@ export default function Dashboard() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              View Data
+              Circuit Diagram
             </button>
             <button
               onClick={() => setActiveTab('statistics')}
@@ -101,7 +108,7 @@ export default function Dashboard() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Statistics
+              Equipments Statistics
             </button>
             <button
               onClick={() => setActiveTab('status')}
@@ -119,6 +126,7 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors">
           {activeTab === 'upload' && token && <UploadForm token={token} />}
           
           {activeTab === 'view' && token && <DataTable token={token} />}
@@ -146,6 +154,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+              
 
               <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-xl font-semibold mb-4">How to Use</h2>
@@ -163,9 +172,11 @@ export default function Dashboard() {
                   <p><strong>Admin:</strong> admin@company.com / admin123</p>
                   <p><strong>User:</strong> user@company.com / user123</p>
                 </div>
+                
               </div>
             </div>
           )}
+          </div>
         </div>
       </main>
     </div>

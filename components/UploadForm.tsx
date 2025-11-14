@@ -94,7 +94,7 @@ export default function UploadForm({ token }: UploadFormProps) {
 
         <div>
           <label htmlFor="file" className="block text-sm font-medium text-gray-700">
-            Excel File
+            CD File
           </label>
           <input
             id="file"
@@ -122,7 +122,7 @@ export default function UploadForm({ token }: UploadFormProps) {
               Importing Data...
             </>
           ) : (
-            'Import Data'
+            'Import Circuit Diagram Data'
           )}
         </button>
       </form>

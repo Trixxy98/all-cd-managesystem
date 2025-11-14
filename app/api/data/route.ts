@@ -22,72 +22,105 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const offset = (page - 1) * limit;
 
-    console.log('API Parameters:', { page, limit, region, search, offset });
+    console.log('📡 API called with:', { page, limit, region, search });
 
-    // Build query
-    let whereConditions: string[] = [];
-    let queryParams: any[] = [limit, offset];
-    let paramCount = 3;
+    // SIMPLE AND SAFE APPROACH - No complex parameter building
+    let dataQuery = '';
+    let countQuery = '';
+    let dataParams: any[] = [];
+    let countParams: any[] = [];
 
-    if (region) {
-      whereConditions.push(`sheet_name = $${paramCount}`);
-      queryParams.push(region);
-      paramCount++;
+    if (region && search) {
+      // Case 1: Both region and search
+      dataQuery = `
+        SELECT id, node, ne_ip, idu, capacity, location, main_stby,
+               site_id_a, site_id_b, protection, sheet_name, created_at
+        FROM network_data 
+        WHERE sheet_name = $1 AND (
+          node ILIKE $2 OR ne_ip ILIKE $2 OR idu ILIKE $2 OR 
+          capacity ILIKE $2 OR location ILIKE $2 OR
+          site_id_a ILIKE $2 OR site_id_b ILIKE $2
+        )
+        ORDER BY id DESC 
+        LIMIT $3 OFFSET $4
+      `;
+      countQuery = `
+        SELECT COUNT(*) as total FROM network_data 
+        WHERE sheet_name = $1 AND (
+          node ILIKE $2 OR ne_ip ILIKE $2 OR idu ILIKE $2 OR 
+          capacity ILIKE $2 OR location ILIKE $2 OR
+          site_id_a ILIKE $2 OR site_id_b ILIKE $2
+        )
+      `;
+      dataParams = [region, `%${search}%`, limit, offset];
+      countParams = [region, `%${search}%`];
+      
+    } else if (region) {
+      // Case 2: Only region
+      dataQuery = `
+        SELECT id, node, ne_ip, idu, capacity, location, main_stby,
+               site_id_a, site_id_b, protection, sheet_name, created_at
+        FROM network_data 
+        WHERE sheet_name = $1
+        ORDER BY id DESC 
+        LIMIT $2 OFFSET $3
+      `;
+      countQuery = `SELECT COUNT(*) as total FROM network_data WHERE sheet_name = $1`;
+      dataParams = [region, limit, offset];
+      countParams = [region];
+      
+    } else if (search) {
+      // Case 3: Only search
+      dataQuery = `
+        SELECT id, node, ne_ip, idu, capacity, location, main_stby,
+               site_id_a, site_id_b, protection, sheet_name, created_at
+        FROM network_data 
+        WHERE (
+          node ILIKE $1 OR ne_ip ILIKE $1 OR idu ILIKE $1 OR 
+          capacity ILIKE $1 OR location ILIKE $1 OR
+          site_id_a ILIKE $1 OR site_id_b ILIKE $1
+        )
+        ORDER BY id DESC 
+        LIMIT $2 OFFSET $3
+      `;
+      countQuery = `
+        SELECT COUNT(*) as total FROM network_data 
+        WHERE (
+          node ILIKE $1 OR ne_ip ILIKE $1 OR idu ILIKE $1 OR 
+          capacity ILIKE $1 OR location ILIKE $1 OR
+          site_id_a ILIKE $1 OR site_id_b ILIKE $1
+        )
+      `;
+      dataParams = [`%${search}%`, limit, offset];
+      countParams = [`%${search}%`];
+      
+    } else {
+      // Case 4: No filters
+      dataQuery = `
+        SELECT id, node, ne_ip, idu, capacity, location, main_stby,
+               site_id_a, site_id_b, protection, sheet_name, created_at
+        FROM network_data 
+        ORDER BY id DESC 
+        LIMIT $1 OFFSET $2
+      `;
+      countQuery = `SELECT COUNT(*) as total FROM network_data`;
+      dataParams = [limit, offset];
+      countParams = [];
     }
 
-    if (search) {
-      const searchCondition = `(
-        node ILIKE $${paramCount} OR 
-        ne_ip ILIKE $${paramCount} OR 
-        idu ILIKE $${paramCount} OR 
-        capacity ILIKE $${paramCount} OR 
-        location ILIKE $${paramCount} OR
-        site_id_a ILIKE $${paramCount} OR
-        site_id_b ILIKE $${paramCount}
-      )`;
-      whereConditions.push(searchCondition);
-      queryParams.push(`%${search}%`);
-      paramCount++;
-    }
+    console.log('📊 Data Query:', dataQuery);
+    console.log('🔢 Data Params:', dataParams);
+    console.log('📊 Count Query:', countQuery);
+    console.log('🔢 Count Params:', countParams);
 
-    const whereClause = whereConditions.length > 0 
-      ? `WHERE ${whereConditions.join(' AND ')}` 
-      : '';
+    // Execute queries
+    const dataResult = await query(dataQuery, dataParams);
+    const countResult = await query(countQuery, countParams);
 
-    // Get paginated data
-    const dataQuery = `
-      SELECT 
-        id, node, ne_ip, idu, capacity, location, main_stby,
-        site_id_a, site_id_b, protection, sheet_name, created_at
-      FROM network_data 
-      ${whereClause}
-      ORDER BY id DESC 
-      LIMIT $1 OFFSET $2
-    `;
-
-    // Get total count - use same WHERE conditions but different parameters
-    const countQuery = `
-      SELECT COUNT(*) as total_count FROM network_data 
-      ${whereClause}
-    `;
-
-    console.log('Data Query:', dataQuery);
-    console.log('Count Query:', countQuery);
-    console.log('Query Params:', queryParams);
-
-    // For count query, we need the WHERE parameters but not LIMIT/OFFSET
-    const countParams = queryParams.slice(2); // Remove $1 (limit) and $2 (offset)
-
-    const [dataResult, countResult] = await Promise.all([
-      query(dataQuery, queryParams),
-      query(countQuery, countParams)
-    ]);
-
-    console.log('Data result count:', dataResult.rows.length);
-    console.log('Total count result:', countResult.rows[0]);
-
-    const total = parseInt(countResult.rows[0]?.total_count || '0');
+    const total = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(total / limit);
+
+    console.log('✅ Success - Found', dataResult.rows.length, 'records out of', total);
 
     return NextResponse.json({
       data: dataResult.rows,
@@ -102,7 +135,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Data fetch error:', error);
+    console.error('❌ Data API error:', error);
     return NextResponse.json(
       { error: `Failed to load data: ${(error as Error).message}` },
       { status: 500 }

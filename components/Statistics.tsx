@@ -1,6 +1,7 @@
 // components/Statistics.tsx
 'use client';
 import { useState, useEffect } from 'react';
+import CapacityCharts from '@/components/CapacityCharts';
 
 interface StatisticsProps {
   token: string;
@@ -58,10 +59,13 @@ export default function Statistics({ token }: StatisticsProps) {
   return (
     <div className="space-y-6">
       {/* Total Records Card */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
+      <div className="bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
         <h3 className="text-2xl font-bold">{stats.totalRecords.toLocaleString()}</h3>
         <p className="text-blue-100">Total Network Records</p>
       </div>
+
+       <CapacityCharts token={token} />
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Region Statistics */}
