@@ -217,3 +217,10 @@ async function insertBatch(client: any, data: any[]) {
 
   await client.query(queryText, values);
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: '25mb',
+  },
+};
