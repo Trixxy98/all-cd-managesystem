@@ -102,7 +102,7 @@ JWT Authentication
 bcryptjs
 
 Database
-🔹 Neon – Cloud PostgreSQL
+🔹 Neon(AWS-Hosted Serverless PostgreSQL)
 
 Serverless PostgreSQL
 
